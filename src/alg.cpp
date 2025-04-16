@@ -1,13 +1,13 @@
 // Copyright 2025 NNTU-CS
 
-#include <algorithm>
-
 int countPairs1(int *arr, int len, int value) {
     int count = 0;
-    for (int i = 0; i < len; ++i) {
-        for (int j = i + 1; j < len; ++j) {
+    for (int i = 0; i < len - 1; i++) {
+        for (int j = i + 1; j < len; j++) {
             if (arr[i] + arr[j] == value) {
                 count++;
+            } else if (arr[i] + arr[j] > value) {
+                break;
             }
         }
     }
@@ -16,80 +16,80 @@ int countPairs1(int *arr, int len, int value) {
 
 int countPairs2(int *arr, int len, int value) {
     int count = 0;
-    int left = 0;
-    int right = len - 1;
-    
+    int left = 0, right = len - 1;
+
     while (left < right) {
         int sum = arr[left] + arr[right];
-        
+
         if (sum == value) {
-            if (arr[left] == arr[right]) {
-                int n = right - left + 1;
-                count += n * (n - 1) / 2;
-                break;
-            }
+            int lVal = arr[left];
+            int rVal = arr[right];
+            int lCount = 0, rCount = 0;
 
-            int left_val = arr[left];
-            int left_count = 1;
-            while (left + 1 < len && arr[left + 1] == left_val) {
+            while (left < right && arr[left] == lVal) {
+                lCount++;
                 left++;
-                left_count++;
+            }
+            while (right >= left && arr[right] == rVal) {
+                rCount++;
+                right--;
             }
 
-            int right_val = arr[right];
-            int right_count = 1;
-            while (right - 1 >= 0 && arr[right - 1] == right_val) {
-                right--;
-                right_count++;
+            if (lVal == rVal) {
+                count += (lCount * (lCount - 1)) / 2;
+            } else {
+                count += lCount * rCount;
             }
-            
-            count += left_count * right_count;
+        } else if (sum < value) {
             left++;
-            right--;
-        } 
-        else if (sum < value) {
-            left++;
-        } 
-        else {
+        } else {
             right--;
         }
     }
+
     return count;
 }
 
-int countOccurrences(int *arr, int left, int right, int target) {
-    int first = -1, last = -1;
-
-    int low = left, high = right;
-    while (low <= high) {
-        int mid = low + (high - low) / 2;
-        if (arr[mid] >= target) {
-            high = mid - 1;
+int findFirstOccurrence(int* array, int left, int right, int target) {
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (array[mid] >= target) {
+            right = mid - 1;
         } else {
-            low = mid + 1;
+            left = mid + 1;
         }
     }
-    first = low;
+    return left;
+}
 
-    low = left, high = right;
-    while (low <= high) {
-        int mid = low + (high - low) / 2;
-        if (arr[mid] <= target) {
-            low = mid + 1;
+int findLastOccurrence(int* array, int left, int right, int target) {
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (array[mid] <= target) {
+            left = mid + 1;
         } else {
-            high = mid - 1;
+            right = mid - 1;
         }
     }
-    last = high;
-    
-    return (first <= last) ? (last - first + 1) : 0;
+    return right;
+}
+
+int countOccurrences(int* arr, int left, int right, int target) {
+    int first = findFirstOccurrence(arr, left, right, target);
+    int last = findLastOccurrence(arr, left, right, target);
+    if (first <= last) {
+        return last - first + 1;
+    }
+    return 0;
 }
 
 int countPairs3(int *arr, int len, int value) {
     int count = 0;
-    for (int i = 0; i < len; ++i) {
-        int target = value - arr[i];
-        count += countOccurrences(arr, i + 1, len - 1, target);
+    for (int i = 0; i < len - 1; i++) {
+        int complement = value - arr[i];
+        if (complement < arr[i]) break;
+        int occurrences = countOccurrences(arr, i + 1, len - 1, complement);
+        count += occurrences;
     }
     return count;
 }
