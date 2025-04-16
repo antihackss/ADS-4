@@ -1,4 +1,4 @@
-// Copyright 2025 NNTU-CS
+#include <algorithm>
 
 int countPairs1(int *arr, int len, int value) {
     int count = 0;
@@ -14,78 +14,85 @@ int countPairs1(int *arr, int len, int value) {
 
 int countPairs2(int *arr, int len, int value) {
     int count = 0;
-    int left = 0, right = len - 1;
-
+    int left = 0;
+    int right = len - 1;
+    
     while (left < right) {
         int sum = arr[left] + arr[right];
-
         if (sum == value) {
-            int l = left + 1;
-            int r = right - 1;
-            int lCount = 1, rCount = 1;
-
-            while (l <= r && arr[l] == arr[left]) {
-                lCount++;
-                l++;
-            }
-
-            while (r >= l && arr[r] == arr[right]) {
-                rCount++;
-                r--;
-            }
-
             if (arr[left] == arr[right]) {
-                int total = right - left + 1;
-                count += total * (total - 1) / 2;
+                int n = right - left + 1;
+                count += n * (n - 1) / 2;
                 break;
-            } else {
-                count += lCount * rCount;
-                left += lCount;
-                right -= rCount;
             }
-
+            
+            int left_val = arr[left];
+            int right_val = arr[right];
+            int left_count = 0;
+            int right_count = 0;
+            
+            while (left < len && arr[left] == left_val) {
+                left++;
+                left_count++;
+            }
+            
+            while (right >= 0 && arr[right] == right_val) {
+                right--;
+                right_count++;
+            }
+            
+            count += left_count * right_count;
         } else if (sum < value) {
             left++;
         } else {
             right--;
         }
     }
-
+    
     return count;
 }
 
-int findFirstOccurrence(int* arr, int left, int right, int target) {
-    while (left <= right) {
-        int mid = (left + right) / 2;
-        if (arr[mid] >= target)
-            right = mid - 1;
-        else
-            left = mid + 1;
-    }
-    return left;
-}
+int binarySearchCount(int *arr, int left, int right, int target) {
+    int first_pos = -1;
+    int low = left, high = right;
 
-int findLastOccurrence(int* arr, int left, int right, int target) {
-    while (left <= right) {
-        int mid = (left + right) / 2;
-        if (arr[mid] <= target)
-            left = mid + 1;
-        else
-            right = mid - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] >= target) {
+            high = mid - 1;
+        } else {
+            low = mid + 1;
+        }
     }
-    return right;
+    first_pos = (low <= right && arr[low] == target) ? low : -1;
+    
+    if (first_pos == -1) return 0;
+
+    int last_pos = first_pos;
+    low = first_pos, high = right;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] <= target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+    last_pos = high;
+    
+    return last_pos - first_pos + 1;
 }
 
 int countPairs3(int *arr, int len, int value) {
     int count = 0;
-    for (int i = 0; i < len - 1; i++) {
+    for (int i = 0; i < len; ++i) {
+        if (arr[i] > value) break;
+        
         int target = value - arr[i];
-        if (target < arr[i])
-            continue;
-        int first = findFirstOccurrence(arr, i + 1, len - 1, target);
-        int last = findLastOccurrence(arr, i + 1, len - 1, target);
-        if (first <= last)
-            count += (last - first + 1);
+        if (target < arr[i]) break;
+        
+        int pairs = binarySearchCount(arr, i + 1, len - 1, target);
+        count += pairs;
     }
     return count;
 }
